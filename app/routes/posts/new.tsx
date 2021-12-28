@@ -1,17 +1,22 @@
 import type { ActionFunction } from "remix";
 import { Link, redirect } from "remix";
+import { db } from "~/utils/db.server";
 
 export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
-  const title = form.get('title');
-  const body = form.get('body');
+  const title = form.get("title");
+  const body = form.get("body");
+
+  if(typeof title !== "string" || typeof body !== "string") {
+    throw new Error("Incorrect form values")
+  }
 
   const fields = { title, body };
 
-  // TODO: submit to database
+  const post = await db.post.create({ data: fields })
 
-  return redirect("/posts");
-}
+  return redirect(`/posts/${post.id}`);
+};
 
 function NewPost() {
   return (
@@ -24,7 +29,7 @@ function NewPost() {
       </div>
 
       <div className="page-content">
-        <form method='POST'>
+        <form method="POST">
           <div className="form-control">
             <label htmlFor="title">Title</label>
             <input type="text" name="title" id="title" />
@@ -40,6 +45,17 @@ function NewPost() {
           </button>
         </form>
       </div>
+    </div>
+  );
+}
+
+export function ErrorBoundary({ error }: { error: Error }) {
+  console.log(error);
+
+  return (
+    <div>
+      <h1>Error</h1>
+      <p>{error.message}</p>
     </div>
   );
 }

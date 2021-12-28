@@ -30,7 +30,7 @@ export default function App() {
   );
 }
 
-function Document({
+export function Document({
   children,
   title,
 }: {
@@ -52,7 +52,7 @@ function Document({
   );
 }
 
-function Layout({ children }: { children: React.ReactNode }) {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <nav className="navbar">
