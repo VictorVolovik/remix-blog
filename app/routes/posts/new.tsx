@@ -1,6 +1,7 @@
 import { ActionFunction } from "remix";
 import { Link, redirect, useActionData, json } from "remix";
 import { db } from "~/utils/db.server";
+import { getUser } from "~/utils/session.server";
 
 type Fields = {
   title: FormDataEntryValue | null;
@@ -32,6 +33,11 @@ export const action: ActionFunction = async ({ request }) => {
   const form = await request.formData();
   const title = form.get("title");
   const body = form.get("body");
+  const user = await getUser(request);
+
+  if(!user) {
+    return redirect('/auth/login')
+  }
 
   const fields: Fields = { title, body };
 
@@ -50,6 +56,7 @@ export const action: ActionFunction = async ({ request }) => {
     data: {
       title: String(fields.title),
       body: String(fields.body),
+      userId: user.id,
     },
   });
 

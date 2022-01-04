@@ -1,6 +1,6 @@
 import { useActionData, json, redirect, ActionFunction } from "remix";
 import { db } from "~/utils/db.server";
-import { login, createUserSession } from "~/utils/session.server";
+import { login, register, createUserSession } from "~/utils/session.server";
 
 type Fields = {
   loginType: FormDataEntryValue | null;
@@ -68,14 +68,36 @@ export const action: ActionFunction = async ({ request }) => {
         });
       }
 
-      return createUserSession(user.id, '/posts');
+      return createUserSession(user.id, "/posts");
     }
 
     case "register": {
-      // Check if user exists
-      // Create user
-      // Create user session
-      return { fields };
+      const userExists = await db.user.findFirst({
+        where: {
+          username: String(username),
+        },
+      });
+
+      if (userExists) {
+        return badRequest({
+          fields,
+          fieldErrors: { username: `User ${username} already exists` },
+        });
+      }
+
+      const user = await register({
+        username: String(username),
+        password: String(password),
+      });
+
+      if (!user) {
+        return badRequest({
+          fields,
+          formError: "Error while registering user",
+        });
+      }
+
+      return createUserSession(user.id, '/posts');
     }
 
     default: {
