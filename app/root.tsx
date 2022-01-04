@@ -9,10 +9,7 @@ import {
   LoaderFunction,
 } from "remix";
 import { getUser } from "./utils/session.server";
-
-type User = {
-  username: string;
-};
+import { User } from "@prisma/client";
 
 import globalStylesUrl from "~/styles/global.css";
 

@@ -1,35 +1,41 @@
 import { LoaderFunction, ActionFunction, redirect } from "remix";
 import { useLoaderData, Link } from "remix";
 import { db } from "~/utils/db.server";
-import { Post } from "./index";
+import { getUser } from "~/utils/session.server";
+import { User, Post } from "@prisma/client";
 
-export const loader: LoaderFunction = async ({ params }) => {
+export const loader: LoaderFunction = async ({ params, request }) => {
   const post = await db.post.findUnique({ where: { id: params.postId } });
+  const user = await getUser(request);
 
   if (!post) {
     throw new Error("Post not found");
   }
 
-  return post;
+  return { post, user };
 };
 
 export const action: ActionFunction = async ({ request, params }) => {
   const form = await request.formData();
+
   if (form.get("_method") === "delete") {
+    const user = await getUser(request);
     const post = await db.post.findUnique({ where: { id: params.postId } });
 
     if (!post) {
       throw new Error("Post not found");
     }
 
-    await db.post.delete({ where: { id: params.postId } });
+    if(user && post.userId === user.id) {
+      await db.post.delete({ where: { id: params.postId } });
+    }
 
     return redirect('/posts');
   }
 };
 
 function Post() {
-  const post = useLoaderData<Post>();
+  const { post, user } = useLoaderData<{ post: Post, user: User}>();
 
   return (
     <div>
@@ -44,12 +50,12 @@ function Post() {
         <p>{post.body}</p>
       </div>
 
-      <div className="page-footer">
+      {user.id === post.userId && <div className="page-footer">
         <form method="POST">
           <input type="hidden" name="_method" value="delete" />
           <button className="btn btn-delete">Delete</button>
         </form>
-      </div>
+      </div>}
     </div>
   );
 }
