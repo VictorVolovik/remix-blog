@@ -1,17 +1,30 @@
 import React from "react";
-import { Link, Links, LiveReload, Meta, Outlet } from "remix";
+import {
+  Link,
+  Links,
+  LiveReload,
+  Meta,
+  Outlet,
+  useLoaderData,
+  LoaderFunction,
+} from "remix";
+import { getUser } from "./utils/session.server";
+
+type User = {
+  username: string;
+};
 
 import globalStylesUrl from "~/styles/global.css";
 
 export const meta = () => {
-  const description = 'A cool blog build with Remix';
-  const keywords  = 'remix, react, javascript';
+  const description = "A cool blog build with Remix";
+  const keywords = "remix, react, javascript";
 
   return {
     description,
-    keywords
-  }
-}
+    keywords,
+  };
+};
 
 export const links = () => [
   {
@@ -19,6 +32,12 @@ export const links = () => [
     href: globalStylesUrl,
   },
 ];
+
+export const loader: LoaderFunction = async ({ request }) => {
+  const user = await getUser(request);
+
+  return user;
+};
 
 export default function App() {
   return (
@@ -53,6 +72,8 @@ export function Document({
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const user = useLoaderData<User>();
+
   return (
     <>
       <nav className="navbar">
@@ -63,9 +84,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <li>
             <Link to="/posts">Posts</Link>
           </li>
-          <li>
-            <Link to="/auth/login">Login</Link>
-          </li>
+          {user ? (
+            <li>
+              <form action="/auth/logout" method="POST">
+                <button className="btn" type="submit">
+                  Logout {user.username}
+                </button>
+              </form>
+            </li>
+          ) : (
+            <li>
+              <Link to="/auth/login">Login</Link>
+            </li>
+          )}
         </ul>
       </nav>
       <div className="container">{children}</div>

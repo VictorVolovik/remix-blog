@@ -1,5 +1,6 @@
 import { useActionData, json, redirect, ActionFunction } from "remix";
 import { db } from "~/utils/db.server";
+import { login, createUserSession } from "~/utils/session.server";
 
 type Fields = {
   loginType: FormDataEntryValue | null;
@@ -21,8 +22,8 @@ function validateUsername(username: FormDataEntryValue | null) {
 }
 
 function validatePassword(password: FormDataEntryValue | null) {
-  if (typeof password !== "string" || password.length < 8) {
-    return "Password should be at least 8 characters long";
+  if (typeof password !== "string" || password.length < 6) {
+    return "Password should be at least 6 characters long";
   }
 }
 
@@ -53,14 +54,21 @@ export const action: ActionFunction = async ({ request }) => {
     return badRequest({ fieldErrors, fields });
   }
 
-  console.log(loginType)
-
   switch (loginType) {
     case "login": {
-      // Find user
-      // Check user
-      // Create user session
-      return { fields };
+      const user = await login({
+        username: String(username),
+        password: String(password),
+      });
+
+      if (!user) {
+        return badRequest({
+          fields,
+          formError: "Invalid credentials",
+        });
+      }
+
+      return createUserSession(user.id, '/posts');
     }
 
     case "register": {
@@ -77,12 +85,11 @@ export const action: ActionFunction = async ({ request }) => {
 };
 
 function Login() {
-  const actionData =
-    useActionData<{
-      fieldErrors: FieldErrors;
-      fields: Fields;
-      formError: FormError;
-    }>();
+  const actionData = useActionData<{
+    fieldErrors: FieldErrors;
+    fields: Fields;
+    formError: FormError;
+  }>();
 
   return (
     <div className="auth-container">
@@ -99,15 +106,21 @@ function Login() {
                 type="radio"
                 name="loginType"
                 value="login"
-                // defaultChecked={
-                //   !actionData?.fields.loginType ||
-                //   actionData?.fields.loginType === "login"
-                // }
+                defaultChecked={
+                  !actionData?.fields.loginType ||
+                  actionData?.fields.loginType === "login"
+                }
               />
               Login
             </label>
             <label>
-              <input type="radio" name="loginType" value="register" /> Register
+              <input
+                type="radio"
+                name="loginType"
+                value="register"
+                defaultChecked={actionData?.fields.loginType === "register"}
+              />{" "}
+              Register
             </label>
           </fieldset>
 
