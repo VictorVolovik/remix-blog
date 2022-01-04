@@ -2,14 +2,14 @@ import { ActionFunction } from "remix";
 import { Link, redirect, useActionData, json } from "remix";
 import { db } from "~/utils/db.server";
 
-type FieldErrors = {
-  title?: string;
-  body?: string;
-};
-
 type Fields = {
   title: FormDataEntryValue | null;
   body: FormDataEntryValue | null;
+};
+
+type FieldErrors = {
+  title?: string;
+  body?: string;
 };
 
 function validateTitle(title: FormDataEntryValue | null) {
@@ -22,6 +22,10 @@ function validateBody(body: FormDataEntryValue | null) {
   if (typeof body !== "string" || body.length < 10) {
     return "Post should be at least 10 characters long";
   }
+}
+
+function badRequest(data: { fieldErrors: FieldErrors; fields: Fields }) {
+  return json(data, { status: 400 });
 }
 
 export const action: ActionFunction = async ({ request }) => {
@@ -39,7 +43,7 @@ export const action: ActionFunction = async ({ request }) => {
   if (Object.values(fieldErrors).some(Boolean)) {
     console.log(fieldErrors);
 
-    return json({ fieldErrors, fields }, { status: 400 });
+    return badRequest({ fieldErrors, fields });
   }
 
   const post = await db.post.create({
@@ -75,7 +79,7 @@ function NewPost() {
               id="title"
               defaultValue={
                 actionData?.fields.title
-                  ? String(actionData?.fields.title)
+                  ? String(actionData.fields.title)
                   : undefined
               }
             />
@@ -95,7 +99,7 @@ function NewPost() {
               id="body"
               defaultValue={
                 actionData?.fields.body
-                  ? String(actionData?.fields.body)
+                  ? String(actionData.fields.body)
                   : undefined
               }
               cols={30}
