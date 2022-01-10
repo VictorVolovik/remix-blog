@@ -7,6 +7,8 @@ import {
   Outlet,
   useLoaderData,
   LoaderFunction,
+  Scripts,
+  Form
 } from "remix";
 import { getUser } from "./utils/session.server";
 import { User } from "@prisma/client";
@@ -63,6 +65,8 @@ export function Document({
 
       <body>{children}</body>
 
+      <Scripts />
+
       {process.env.NODE_ENV === "development" ? <LiveReload /> : null}
     </html>
   );
@@ -83,11 +87,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
           </li>
           {user ? (
             <li>
-              <form action="/auth/logout" method="POST">
+              <Form action="/auth/logout" method="POST">
                 <button className="btn" type="submit">
                   Logout {user.username}
                 </button>
-              </form>
+              </Form>
             </li>
           ) : (
             <li>

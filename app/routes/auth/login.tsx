@@ -1,4 +1,4 @@
-import { useActionData, json, redirect, ActionFunction } from "remix";
+import { useActionData, json, redirect, ActionFunction, Form } from "remix";
 import { db } from "~/utils/db.server";
 import { login, register, createUserSession } from "~/utils/session.server";
 
@@ -120,7 +120,7 @@ function Login() {
       </div>
 
       <div className="page-content">
-        <form method="POST">
+        <Form method="POST">
           <fieldset>
             <legend>Login or Register</legend>
             <label>
@@ -195,7 +195,7 @@ function Login() {
           <div className="error">
             <p>{actionData?.formError ? actionData.formError : null}</p>
           </div>
-        </form>
+        </Form>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import { LoaderFunction, ActionFunction, redirect } from "remix";
+import { LoaderFunction, ActionFunction, redirect, Form } from "remix";
 import { useLoaderData, Link } from "remix";
 import { db } from "~/utils/db.server";
 import { getUser } from "~/utils/session.server";
@@ -51,10 +51,10 @@ function Post() {
       </div>
 
       {user.id === post.userId && <div className="page-footer">
-        <form method="POST">
+        <Form method="POST">
           <input type="hidden" name="_method" value="delete" />
           <button className="btn btn-delete">Delete</button>
-        </form>
+        </Form>
       </div>}
     </div>
   );
